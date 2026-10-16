@@ -14,6 +14,7 @@
     {
       devShells.${system}.default = pkgs.mkShell {
         packages = with pkgs; [
+          clang-tools
           gcc
           gnumake
           cmake
