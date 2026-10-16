@@ -2,3 +2,4 @@ build/
 build-windows/
 .direnv/
 .cache/
+.wine/

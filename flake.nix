@@ -36,10 +36,17 @@
             wayland-scanner
             egl-wayland
             libxkbcommon
+
+            wineWow64Packages.stable
           ]
           ++ [
             pkgsCross.stdenv.cc
           ];
+
+        # Formatter decided it looks good this way.
+        shellHook = ''
+          			export WINEPREFIX=$(pwd)/.wine
+          			'';
       };
     };
 }
