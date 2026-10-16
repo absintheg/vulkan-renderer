@@ -20,10 +20,22 @@
         packages =
           with pkgs;
           [
+            pkg-config
             clang-tools
             gcc
             gnumake
             cmake
+
+            libx11
+            libxrandr
+            libxinerama
+            libxcursor
+            libxi
+            libxext
+            wayland
+            wayland-scanner
+            egl-wayland
+            libxkbcommon
           ]
           ++ [
             pkgsCross.stdenv.cc
