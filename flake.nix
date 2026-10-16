@@ -26,6 +26,7 @@
             gnumake
             cmake
             shaderc
+            vulkan-tools
 
             libx11
             libxrandr
