@@ -9,14 +9,12 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
       pkgsShared = with pkgs; [
+        vulkan-tools
         clang-tools
         pkg-config
         gnumake
         cmake
         shaderc
-
-        vulkan-tools
-        vulkan-loader
       ];
     in
     {
