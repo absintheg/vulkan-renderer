@@ -18,9 +18,10 @@
           gcc
           gnumake
           cmake
-          sdl3
-          sdl3-ttf
-          sdl3-image
+
+          glm
+          glfw
+          vulkan-tools
         ];
       };
     };
