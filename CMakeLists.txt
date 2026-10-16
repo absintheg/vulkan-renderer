@@ -7,6 +7,7 @@ set(CMAKE_CXX_EXTENSIONS, OFF)
 
 find_package(SDL3 REQUIRED)
 
+add_subdirectory(external)
 add_subdirectory(client)
 add_subdirectory(mem)
 
