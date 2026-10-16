@@ -31,6 +31,7 @@
               libxcursor
               libxi
               libxext
+              libffi
               libGL
               wayland
               wayland-scanner
