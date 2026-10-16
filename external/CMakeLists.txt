@@ -4,7 +4,7 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(glfw)
-add_subdirectory(glm)
+add_subdirectory(cglm)
 
 set(VULKAN_HEADERS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
 set(VULKAN_HEADERS_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)

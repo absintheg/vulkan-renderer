@@ -4,7 +4,7 @@ add_library(client STATIC
 
 target_link_libraries(client PRIVATE
 	glfw
-	glm::glm
+	cglm
 	Vulkan::Headers
 )
 
