@@ -2,3 +2,4 @@ build/
 .direnv/
 .cache/
 .wine/
+compile_commands.json
