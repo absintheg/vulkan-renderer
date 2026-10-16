@@ -3,7 +3,9 @@ add_library(client STATIC
 )
 
 target_link_libraries(client PRIVATE
-	SDL3::SDL3
+	glfw
+    glm::glm
+    Vulkan::Headers
 )
 
 target_include_directories(client PUBLIC
