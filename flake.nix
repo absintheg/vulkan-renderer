@@ -26,7 +26,9 @@
             gnumake
             cmake
             shaderc
+
             vulkan-tools
+            vulkan-loader
 
             libx11
             libxrandr
@@ -34,6 +36,7 @@
             libxcursor
             libxi
             libxext
+            libGL
             wayland
             wayland-scanner
             egl-wayland
