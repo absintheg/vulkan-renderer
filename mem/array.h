@@ -9,7 +9,7 @@ typedef struct {
 	int count;
 	int size;
 	int capacity;
-} array_t;
+} Array;
 
 #define TRY_CONDITION(expr) \
 	if (!expr) return false;
@@ -17,16 +17,16 @@ typedef struct {
 bool array_allocate(
 		int capacity,
 		int size,
-		allocator_t allocator,
-		array_t *out);
+		Allocator allocator,
+		Array *out);
 
 void array_free(
-		array_t *array,
-		allocator_t allocator);
+		Array *array,
+		Allocator allocator);
 
-void *array_get_last    (array_t *array);
-void *array_get_item    (array_t *array, int i);
-void *array_append_item (array_t *array);
-void *array_clear_all   (array_t *array);
+void *array_get_last    (Array *array);
+void *array_get_item    (Array *array, int i);
+void *array_append_item (Array *array);
+void *array_clear_all   (Array *array);
 
 #endif

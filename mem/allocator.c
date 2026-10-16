@@ -21,25 +21,25 @@ void std_free(void *_self, void *memory) {
 	free(memory);
 }
 
-allocator_callbacks_t std_allocator_callbacks = {
+AllocatorCallbacks std_allocator_callbacks = {
 	.alloc = std_alloc,
 	.resize = std_resize,
 	.free = std_free,
 };
 
-allocator_t std_allocator = {
+Allocator std_allocator = {
 	.callbacks = &std_allocator_callbacks,
 	.self = 0,
 };
 
-void *allocator_alloc(allocator_t allocator, unsigned long amount) {
+void *allocator_alloc(Allocator allocator, unsigned long amount) {
 	return allocator.callbacks->alloc(allocator.self, amount);
 }
 
-void *allocator_resize(allocator_t allocator, unsigned long amount, void *memory) {
+void *allocator_resize(Allocator allocator, unsigned long amount, void *memory) {
 	return allocator.callbacks->resize(allocator.self, amount, memory);
 }
 
-void allocator_free(allocator_t allocator, void *memory) {
+void allocator_free(Allocator allocator, void *memory) {
 	allocator.callbacks->free(allocator.self, memory);
 }

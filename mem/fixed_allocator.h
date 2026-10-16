@@ -9,21 +9,21 @@
 
 typedef struct {
 	size_t size;
-} fixed_allocator_block_header_t;
+} FiixedAllocatorBlockHeader;
 
 typedef struct {
 	uint8_t *buffer;
 	size_t capacity;
 	size_t used;
-} fixed_allocator_t;
+} FixedAllocator;
 
-extern allocator_callbacks_t fixed_allocator_callbacks;
+extern AllocatorCallbacks fixed_allocator_callbacks;
 
 bool fixed_allocator_create(
-		fixed_allocator_t *out,
+		FixedAllocator *out,
 		unsigned long capacity,
-		allocator_t child_allocator);
+		Allocator child_allocator);
 
-allocator_t fixed_allocator_get_allocator(fixed_allocator_t *fixed_allocator);
+Allocator fixed_allocator_get_allocator(FixedAllocator *fixed_allocator);
 
 #endif
