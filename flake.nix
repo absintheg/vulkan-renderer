@@ -25,6 +25,7 @@
             gcc
             gnumake
             cmake
+            shaderc
 
             libx11
             libxrandr
