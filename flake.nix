@@ -7,22 +7,27 @@
     { nixpkgs, ... }:
     let
       system = "x86_64-linux";
-      pkgs = import nixpkgs {
+      pkgs = import nixpkgs { inherit system; };
+      pkgsCross = import pkgs.path {
         inherit system;
+        crossSystem = {
+          config = "x86_64-w64-mingw32";
+        };
       };
     in
     {
       devShells.${system}.default = pkgs.mkShell {
-        packages = with pkgs; [
-          clang-tools
-          gcc
-          gnumake
-          cmake
-
-          glm
-          glfw
-          vulkan-tools
-        ];
+        packages =
+          with pkgs;
+          [
+            clang-tools
+            gcc
+            gnumake
+            cmake
+          ]
+          ++ [
+            pkgsCross.stdenv.cc
+          ];
       };
     };
 }
