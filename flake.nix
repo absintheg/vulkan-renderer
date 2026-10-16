@@ -8,28 +8,22 @@
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
-      pkgsCross = import pkgs.path {
-        inherit system;
-        crossSystem = {
-          config = "x86_64-w64-mingw32";
-        };
-      };
+      pkgsShared = with pkgs; [
+        clang-tools
+        pkg-config
+        gnumake
+        cmake
+        shaderc
+
+        vulkan-tools
+        vulkan-loader
+      ];
     in
     {
       devShells.${system}.default = pkgs.mkShell {
         packages =
           with pkgs;
           [
-            pkg-config
-            clang-tools
-            gcc
-            gnumake
-            cmake
-            shaderc
-
-            vulkan-tools
-            vulkan-loader
-
             libx11
             libxrandr
             libxinerama
@@ -41,17 +35,31 @@
             wayland-scanner
             egl-wayland
             libxkbcommon
-
-            wineWow64Packages.stable
           ]
-          ++ [
-            pkgsCross.stdenv.cc
-          ];
-
-        # Formatter decided it looks good this way.
-        shellHook = ''
-          			export WINEPREFIX=$(pwd)/.wine
-          			'';
+          ++ pkgsShared;
       };
+
+      # Cross compilation shell
+      devShells.${system}.windows =
+        let
+          pkgsCross = import pkgs.path {
+            inherit system;
+            crossSystem = {
+              config = "x86_64-w64-mingw32";
+            };
+          };
+        in
+        pkgs.mkShell {
+          packages = [
+            pkgs.wineWow64Packages.stable
+            pkgsCross.stdenv.cc
+          ]
+          ++ pkgsShared;
+
+          # Formatter decided it looks good this way.
+          shellHook = ''
+            			export WINEPREFIX=$(pwd)/.wine
+            			'';
+        };
     };
 }
