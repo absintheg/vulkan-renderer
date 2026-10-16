@@ -13,3 +13,4 @@ set(VULKAN_HEADERS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
 set(VULKAN_HEADERS_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(vulkan)
+add_subdirectory(volk)

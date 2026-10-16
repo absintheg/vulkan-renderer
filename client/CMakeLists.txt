@@ -5,6 +5,7 @@ add_library(client STATIC
 target_link_libraries(client PRIVATE
 	glfw
 	cglm
+	volk
 	Vulkan::Headers
 )
 
