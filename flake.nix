@@ -19,29 +19,33 @@
     in
     {
       devShells.${system} = {
-        default = pkgs.mkShell {
-          packages =
-            with pkgs;
-            [
+        default =
+          let
+            runtimePkgs = with pkgs; [
               libx11
               libxrandr
               libxinerama
               libxcursor
               libxi
-              libxext
-              libffi
               libGL
+              libffi
               wayland
-              wayland-scanner
               egl-wayland
               libxkbcommon
-            ]
-            ++ pkgsShared;
+              vulkan-loader
+            ];
+          in
+          pkgs.mkShell {
+            packages =
+              with pkgs;
+              [
+                wayland-scanner
+              ]
+              ++ pkgsShared
+              ++ runtimePkgs;
 
-          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
-            pkgs.vulkan-loader
-          ];
-        };
+            LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath runtimePkgs;
+          };
 
         # Cross compilation shell
         windows =
