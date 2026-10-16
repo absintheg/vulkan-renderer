@@ -37,6 +37,10 @@
               libxkbcommon
             ]
             ++ pkgsShared;
+
+          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
+            pkgs.vulkan-loader
+          ];
         };
 
         # Cross compilation shell

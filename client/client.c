@@ -3,7 +3,6 @@
 
 #include <GLFW/glfw3.h>
 
-#include <stdint.h>
 #include <stdio.h>
 #include <volk.h>
 
@@ -12,11 +11,6 @@ int start_client() {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   GLFWwindow *window =
       glfwCreateWindow(800, 600, "Vulkan window", NULL, NULL);
-
-  uint32_t extensionCount = 0;
-  vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, NULL);
-
-  printf("Extensions supported: %d\n", extensionCount);
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
