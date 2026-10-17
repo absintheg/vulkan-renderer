@@ -9,6 +9,7 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
       pkgsShared = with pkgs; [
+        vulkan-validation-layers
         vulkan-tools
         clang-tools
         pkg-config
