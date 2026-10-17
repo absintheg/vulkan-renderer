@@ -174,15 +174,15 @@ bool rate_device_suitablity(VkPhysicalDevice device) {
     vkGetPhysicalDeviceProperties(device, &device_properties);
     vkGetPhysicalDeviceFeatures(device, &device_features);
 
-	int score = 0;
+    int score = 0;
 
-	if (device_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
-		score += 1000;
-	}
+    if (device_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+        score += 1000;
+    }
 
     score += device_properties.limits.maxImageDimension2D;
 
-	return score;
+    return score;
 }
 
 VkPhysicalDevice pick_physical_device(VkInstance instance) {
@@ -191,20 +191,20 @@ VkPhysicalDevice pick_physical_device(VkInstance instance) {
     VkPhysicalDevice devices[device_count];
     vkEnumeratePhysicalDevices(instance, &device_count, devices);
 
-	int max_score = 0;
-	int max_score_device = -1;
+    int max_score = 0;
+    int max_score_device = -1;
 
     for (int i = 0; i < device_count; i++) {
-		int score = rate_device_suitablity(devices[i]);
+        int score = rate_device_suitablity(devices[i]);
         if (score > max_score) {
-			max_score = score;
-			max_score_device = i;
+            max_score = score;
+            max_score_device = i;
         }
     }
 
-	if (max_score == 0) {
-		return VK_NULL_HANDLE;
-	}
+    if (max_score == 0) {
+        return VK_NULL_HANDLE;
+    }
 
     return devices[device_count];
 }
@@ -227,7 +227,7 @@ int start_client() {
     }
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     GLFWwindow *window =
         glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "Vulkan window", NULL, NULL);
