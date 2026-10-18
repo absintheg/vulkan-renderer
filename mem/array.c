@@ -11,7 +11,6 @@ bool array_allocate(int capacity, int size, Allocator allocator, Array *out) {
     arr.data = data;
     arr.capacity = capacity;
     arr.size = size;
-    arr.count = 0;
     *out = arr;
 
     return true;
@@ -27,6 +26,11 @@ void array_free(Array *array, Allocator allocator) {
 void *array_get_last(Array *array) {
     assert(array->count > 0 && "Array access out of bounds");
     return array->data + (array->count - 1) * array->size;
+}
+
+void *array_get_first(Array *array) {
+    assert(array->count > 0 && "Array access out of bounds");
+    return array->data;
 }
 
 void *array_get_item(Array *array, int i) {

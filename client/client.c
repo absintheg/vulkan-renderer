@@ -14,7 +14,7 @@
 const uint32_t WIN_WIDTH = 800;
 const uint32_t WIN_HEIGHT = 600;
 
-const bool validation_layers_enabled = true;
+const bool validation_layers_enabled = false;
 const char *validation_layers[] = {"VK_LAYER_KHRONOS_validation"};
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL

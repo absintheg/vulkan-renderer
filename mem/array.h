@@ -11,9 +11,6 @@ typedef struct {
 	int capacity;
 } Array;
 
-#define TRY_CONDITION(expr) \
-	if (!expr) return false;
-
 bool array_allocate(
 		int capacity,
 		int size,
@@ -25,6 +22,7 @@ void array_free(
 		Allocator allocator);
 
 void *array_get_last    (Array *array);
+void *array_get_first   (Array *array);
 void *array_get_item    (Array *array, int i);
 void *array_append_item (Array *array);
 void *array_clear_all   (Array *array);
