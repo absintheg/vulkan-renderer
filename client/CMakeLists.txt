@@ -3,6 +3,7 @@ add_library(client STATIC
 )
 
 target_link_libraries(client PRIVATE
+	mem
 	glfw
 	cglm
 	volk
