@@ -40,6 +40,7 @@
             packages =
               with pkgs;
               [
+                gdb
                 wayland-scanner
               ]
               ++ pkgsShared
