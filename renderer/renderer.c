@@ -328,6 +328,7 @@ VkResult create_shader_module(VkDevice device, uint32_t code_size, char *code,
     return vkCreateShaderModule(device, &create_info, NULL, out);
 }
 
+// TODO: destroy objects in case of failure
 bool renderer_create(Allocator allocator, VkInstance instance, VkSurfaceKHR surface,
                      int window_width, int window_height, RendererState *out) {
     PhysicalDeviceDetails physical_device_details = pick_physical_device(instance, surface);
@@ -360,12 +361,12 @@ bool renderer_create(Allocator allocator, VkInstance instance, VkSurfaceKHR surf
         return false;
 
 	VkShaderModule fragment_shader;
-	if (create_shader_module(device, shader_frag_contents_len, (char *)shader_frag_contents, &fragment_shader) != VK_SUCCESS)
+	if (create_shader_module(device, SHADER_CONTENTS_shader_frag_len, (char *)SHADER_CONTENTS_shader_frag, &fragment_shader) != VK_SUCCESS)
 		return false;
 
 
 	VkShaderModule vertex_shader;
-	if (create_shader_module(device, shader_vert_contents_len, (char *)shader_vert_contents, &vertex_shader) != VK_SUCCESS)
+	if (create_shader_module(device, SHADER_CONTENTS_shader_vert_len, (char *)SHADER_CONTENTS_shader_vert, &vertex_shader) != VK_SUCCESS)
 		return false;
 
     RendererState renderer = {
