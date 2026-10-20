@@ -33,14 +33,15 @@ typedef struct RendererState {
     VkDevice device;
     VkQueue device_queue;
     VkSurfaceKHR surface;
+    VkInstance instance;
     SwapchainDetails swapchain_details;
     PhysicalDeviceDetails physical_device;
 
     Array swapchain_images;
     Array swapchain_views;
 
-	VkShaderModule frag;
-	VkShaderModule vert;
+    VkShaderModule frag;
+    VkShaderModule vert;
 } RendererState;
 
 bool renderer_create(Allocator allocator, VkInstance instance, VkSurfaceKHR surface,

@@ -328,29 +328,26 @@ VkResult create_shader_module(VkDevice device, uint32_t code_size, char *code,
     return vkCreateShaderModule(device, &create_info, NULL, out);
 }
 
-// TODO: destroy objects in case of failure
 bool renderer_create(Allocator allocator, VkInstance instance, VkSurfaceKHR surface,
                      int window_width, int window_height, RendererState *out) {
     PhysicalDeviceDetails physical_device_details = pick_physical_device(instance, surface);
     if (physical_device_details.physical_device == VK_NULL_HANDLE)
-        return false;
+        goto fail;
 
     VkPhysicalDevice physical_device = physical_device_details.physical_device;
     QueueFamilyIndices queue_families = physical_device_details.queue_families;
 
     VkDevice device;
     if (create_logical_device(physical_device, queue_families, &device) != VK_SUCCESS)
-        return false;
+        goto fail;
 
     VkQueue device_queue;
     vkGetDeviceQueue(device, queue_families.family, 0, &device_queue);
 
     SwapchainDetails swapchain_details;
     if (create_swapchain(physical_device, device, surface, window_width, window_height,
-                         &swapchain_details) != VK_SUCCESS) {
-        vkDestroyDevice(device, NULL);
-        return false;
-    }
+                         &swapchain_details) != VK_SUCCESS)
+        goto cleanup_device;
 
     VkSwapchainKHR swapchain = swapchain_details.swapchain;
 
@@ -358,16 +355,17 @@ bool renderer_create(Allocator allocator, VkInstance instance, VkSurfaceKHR surf
     Array image_views;
     if (create_image_views(std_allocator, device, swapchain_details.surface_format.format,
                            swapchain_images, &image_views) != VK_SUCCESS)
-        return false;
+        goto cleanup_swapchain;
 
-	VkShaderModule fragment_shader;
-	if (create_shader_module(device, SHADER_CONTENTS_shader_frag_len, (char *)SHADER_CONTENTS_shader_frag, &fragment_shader) != VK_SUCCESS)
-		return false;
+    VkShaderModule fragment_shader;
+    if (create_shader_module(device, SHADER_CONTENTS_shader_frag_len,
+                             (char *)SHADER_CONTENTS_shader_frag, &fragment_shader) != VK_SUCCESS)
+        goto cleanup_swapchain_images;
 
-
-	VkShaderModule vertex_shader;
-	if (create_shader_module(device, SHADER_CONTENTS_shader_vert_len, (char *)SHADER_CONTENTS_shader_vert, &vertex_shader) != VK_SUCCESS)
-		return false;
+    VkShaderModule vertex_shader;
+    if (create_shader_module(device, SHADER_CONTENTS_shader_vert_len,
+                             (char *)SHADER_CONTENTS_shader_vert, &vertex_shader) != VK_SUCCESS)
+        goto cleanup_frag_shader;
 
     RendererState renderer = {
         .swapchain_details = swapchain_details,
@@ -377,12 +375,35 @@ bool renderer_create(Allocator allocator, VkInstance instance, VkSurfaceKHR surf
         .device_queue = device_queue,
         .physical_device = physical_device_details,
         .surface = surface,
+        .instance = instance,
 
-		.frag = fragment_shader,
-		.vert = vertex_shader,
+        .frag = fragment_shader,
+        .vert = vertex_shader,
     };
 
+    *out = renderer;
+
     return true;
+
+cleanup_frag_shader:
+    vkDestroyShaderModule(device, fragment_shader, NULL);
+
+cleanup_swapchain_images:
+    for (int i = 0; i < image_views.count; i++) {
+        vkDestroyImageView(device, *(VkImageView *)array_get_item(&image_views, i), NULL);
+    }
+    array_free(&image_views, allocator);
+
+cleanup_swapchain:
+    vkDestroySwapchainKHR(device, swapchain_details.swapchain, NULL);
+    free_swapchain_support_details(allocator, &swapchain_details.support);
+    array_free(&swapchain_images, allocator);
+
+cleanup_device:
+    vkDestroyDevice(device, NULL);
+
+fail:
+    return false;
 }
 
 void renderer_destroy(Allocator allocator, RendererState *renderer) {
@@ -391,13 +412,13 @@ void renderer_destroy(Allocator allocator, RendererState *renderer) {
                            *(VkImageView *)array_get_item(&renderer->swapchain_views, i), NULL);
     }
 
+    vkDestroyShaderModule(renderer->device, renderer->frag, NULL);
+    vkDestroyShaderModule(renderer->device, renderer->vert, NULL);
+
     vkDestroySwapchainKHR(renderer->device, renderer->swapchain_details.swapchain, NULL);
-    vkDestroyDevice(renderer->device, NULL);
-
-	vkDestroyShaderModule(renderer->device, renderer->frag, NULL);
-	vkDestroyShaderModule(renderer->device, renderer->vert, NULL);
-
     free_swapchain_support_details(allocator, &renderer->swapchain_details.support);
     array_free(&renderer->swapchain_images, allocator);
     array_free(&renderer->swapchain_views, allocator);
+
+    vkDestroyDevice(renderer->device, NULL);
 }
