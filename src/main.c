@@ -13,7 +13,6 @@
 
 #include "allocator.h"
 #include "renderer.h"
-#include "validation.h"
 
 const uint32_t WIN_WIDTH = 800;
 const uint32_t WIN_HEIGHT = 600;
@@ -79,6 +78,10 @@ VkResult create_vk_instance(VkInstance *out) {
     Array extensions = get_instance_required_extensions();
     create_info.enabledExtensionCount = extensions.count;
     create_info.ppEnabledExtensionNames = (const char **)extensions.data;
+
+    for (int i = 0; i < extensions.count; i++) {
+        printf("Extension name: %s\n", *(char **)array_get(&extensions, i));
+    }
 
     VkDebugUtilsMessengerCreateInfoEXT debug_info;
 
@@ -168,11 +171,14 @@ int main() {
     glfwGetWindowSize(window, &window_width, &window_height);
 
     RendererState renderer;
-    assert(renderer_create(std_allocator, instance, surface, window_width, window_height,
-                           &renderer));
+    assert(
+        renderer_create(std_allocator, instance, surface, window_width, window_height, &renderer));
+
+	printf("Renderer created\n");
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
+		renderer_draw(&renderer);
     }
 
     if (VALIDATION_LAYERS_ENABLED) {

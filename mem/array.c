@@ -23,23 +23,23 @@ void array_free(Array *array, Allocator allocator) {
     array->count = 0;
 }
 
-void *array_get_last(Array *array) {
+void *array_last(Array *array) {
     assert(array->count > 0 && "Array access out of bounds");
     return array->data + (array->count - 1) * array->size;
 }
 
-void *array_get_first(Array *array) {
+void *array_first(Array *array) {
     assert(array->count > 0 && "Array access out of bounds");
     return array->data;
 }
 
-void *array_get_item(Array *array, int i) {
+void *array_get(Array *array, int i) {
     assert(array->count > i && i >= 0 && "Array access out of bounds");
     return array->data + i * array->size;
 }
 
-void *array_append_item(Array *array) {
+void *array_append(Array *array) {
     assert(array->count < array->capacity && "Array full");
     array->count += 1;
-    return array_get_last(array);
+    return array_last(array);
 }

@@ -21,10 +21,10 @@ void array_free(
 		Array *array,
 		Allocator allocator);
 
-void *array_get_last    (Array *array);
-void *array_get_first   (Array *array);
-void *array_get_item    (Array *array, int i);
-void *array_append_item (Array *array);
-void *array_clear_all   (Array *array);
+void *array_last    (Array *array);
+void *array_first   (Array *array);
+void *array_get    (Array *array, int i);
+void *array_append (Array *array);
+void *array_clear   (Array *array);
 
 #endif
