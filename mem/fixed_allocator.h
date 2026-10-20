@@ -9,7 +9,7 @@
 
 typedef struct {
 	size_t size;
-} FiixedAllocatorBlockHeader;
+} FixedAllocatorBlockHeader;
 
 typedef struct {
 	uint8_t *buffer;

@@ -1,6 +1,7 @@
 
 #include <assert.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <volk.h>
@@ -83,6 +84,8 @@ SwapchainSupportDetails query_swapchain_support(Allocator allocator, VkPhysicalD
         vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &surface_format_count,
                                              details.surface_formats.data);
         details.surface_formats.count = surface_format_count;
+    } else {
+        printf("Zero format\n");
     }
 
     uint32_t present_mode_count;

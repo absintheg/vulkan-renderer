@@ -1,17 +1,15 @@
 #include "array.h"
 #include <assert.h>
 
-bool array_allocate(int capacity, int size, Allocator allocator, Array *out) {
+bool array_allocate(int capacity, int size, Allocator allocator, Array *array) {
     void *data = allocator_alloc(allocator, capacity * size);
     if (!data) {
         return false;
     }
 
-    Array arr;
-    arr.data = data;
-    arr.capacity = capacity;
-    arr.size = size;
-    *out = arr;
+    array->data = data;
+    array->capacity = capacity;
+    array->size = size;
 
     return true;
 }
