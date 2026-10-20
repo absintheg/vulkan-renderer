@@ -6,12 +6,16 @@ set(CMAKE_C_STANDARD_REQUIRED, YES)
 set(CMAKE_C_EXTENSIONS, OFF)
 
 add_subdirectory(external)
-add_subdirectory(client)
+add_subdirectory(loader)
+add_subdirectory(renderer)
 add_subdirectory(mem)
 
 add_executable(${PROJECT_NAME} src/main.c)
 
 target_link_libraries(${PROJECT_NAME}
-	client
+	glfw
+	volk
+	Vulkan::Headers
+	renderer
 	mem
 )

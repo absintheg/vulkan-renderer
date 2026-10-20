@@ -1,183 +1,18 @@
-#define GLFW_INCLUDE_VULKAN
-#define VK_NO_PROTOTYPES
 
 #include <assert.h>
-#include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-#include <GLFW/glfw3.h>
 #include <volk.h>
 
 #include "allocator.h"
 #include "array.h"
+#include "renderer.h"
 
-const uint32_t WIN_WIDTH = 800;
-const uint32_t WIN_HEIGHT = 600;
+#include "spirv/shader.frag.h"
+#include "spirv/shader.vert.h"
 
-const bool VALIDATION_LAYERS_ENABLED = true;
-const char *VALIDATION_LAYERS[] = {"VK_LAYER_KHRONOS_validation"};
 const char *REQUIRED_EXTENSIONS[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-
-typedef struct ExtensionList {
-    char **extensions;
-    uint32_t count;
-} ExtensionList;
-
-typedef struct QueueFamilyIndices {
-    bool available;
-    uint32_t family;
-} QueueFamilyIndices;
-
-typedef struct SwapchainSupportDetails {
-    VkSurfaceCapabilitiesKHR capabilities;
-    Array present_modes;
-    Array surface_formats;
-} SwapchainSupportDetails;
-
-typedef struct PhysicalDeviceDetails {
-    QueueFamilyIndices queue_families;
-    VkPhysicalDevice physical_device;
-} PhysicalDeviceDetails;
-
-static VKAPI_ATTR VkBool32 VKAPI_CALL
-debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-               VkDebugUtilsMessageTypeFlagsEXT messageType,
-               const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData) {
-
-    printf("Validation: %s\n", pCallbackData->pMessage);
-    return VK_FALSE;
-}
-
-bool check_validation_support() {
-    uint32_t layer_count;
-    vkEnumerateInstanceLayerProperties(&layer_count, NULL);
-
-    VkLayerProperties available_layers[layer_count];
-    vkEnumerateInstanceLayerProperties(&layer_count, available_layers);
-
-    for (int i = 0; i < layer_count; i++) {
-        printf("\t Validation layer name: %s\n", available_layers[i].layerName);
-        printf("\t            layer desc: %s\n", available_layers[i].description);
-        printf("\n");
-    }
-
-    for (int i = 0; i < sizeof(VALIDATION_LAYERS) / sizeof(char *); i++) {
-        bool layer_found = false;
-
-        for (int j = 0; j < layer_count; j++) {
-            if (strcmp(available_layers[j].layerName, VALIDATION_LAYERS[i]) == 0) {
-                layer_found = true;
-                break;
-            }
-        }
-        if (!layer_found) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-ExtensionList get_instance_required_extensions() {
-    uint32_t extension_count = 0;
-    char **extensions = (char **)glfwGetRequiredInstanceExtensions(&extension_count);
-
-    if (VALIDATION_LAYERS_ENABLED) {
-        char **new_extensions = malloc((extension_count + 1) * sizeof(char *));
-        memcpy(new_extensions, extensions, extension_count * sizeof(char *));
-        new_extensions[extension_count] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
-        extensions = new_extensions;
-        extension_count++;
-    }
-
-    return (ExtensionList){
-        .extensions = extensions,
-        .count = extension_count,
-    };
-}
-
-VkResult create_debug_utils_messenger_ext(VkInstance instance,
-                                          const VkDebugUtilsMessengerCreateInfoEXT *p_create_info,
-                                          const VkAllocationCallbacks *p_allocator,
-                                          VkDebugUtilsMessengerEXT *p_debug_messenger) {
-
-    PFN_vkCreateDebugUtilsMessengerEXT func =
-        (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance,
-                                                                  "vkCreateDebugUtilsMessengerEXT");
-    if (func) {
-        return func(instance, p_create_info, p_allocator, p_debug_messenger);
-    } else {
-        return VK_ERROR_EXTENSION_NOT_PRESENT;
-    }
-}
-
-void destroy_debug_utils_messenger_ext(VkInstance instance,
-                                       VkDebugUtilsMessengerEXT debug_messenger,
-                                       const VkAllocationCallbacks *p_allocator) {
-
-    PFN_vkDestroyDebugUtilsMessengerEXT func =
-        (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
-            instance, "vkDestroyDebugUtilsMessengerEXT");
-    if (func) {
-        func(instance, debug_messenger, p_allocator);
-    }
-}
-
-void init_debug_create_info(VkDebugUtilsMessengerCreateInfoEXT *info) {
-    *info = (VkDebugUtilsMessengerCreateInfoEXT){0};
-    info->sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    info->messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-                            VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                            VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    info->messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                        VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                        VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    info->pfnUserCallback = debug_callback;
-    info->pUserData = NULL; // Optional
-}
-
-VkResult create_debug_messenger(VkInstance instance, VkDebugUtilsMessengerEXT *out) {
-
-    VkDebugUtilsMessengerCreateInfoEXT create_info;
-    init_debug_create_info(&create_info);
-
-    return create_debug_utils_messenger_ext(instance, &create_info, NULL, out);
-}
-
-VkResult create_vk_instance(VkInstance *out) {
-    VkApplicationInfo app_info = {0};
-    app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    app_info.pApplicationName = "Hello Triangle";
-    app_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    app_info.pEngineName = "No Engine";
-    app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    app_info.apiVersion = VK_API_VERSION_1_0;
-
-    VkInstanceCreateInfo create_info = {0};
-    create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    create_info.pApplicationInfo = &app_info;
-
-    ExtensionList extensions = get_instance_required_extensions();
-    create_info.enabledExtensionCount = extensions.count;
-    create_info.ppEnabledExtensionNames = (const char **)extensions.extensions;
-
-    VkDebugUtilsMessengerCreateInfoEXT debug_info;
-
-    if (VALIDATION_LAYERS_ENABLED) {
-        create_info.ppEnabledLayerNames = (void *)&VALIDATION_LAYERS;
-        create_info.enabledLayerCount = sizeof(VALIDATION_LAYERS) / sizeof(char *);
-
-        init_debug_create_info(&debug_info);
-        create_info.pNext = &debug_info;
-    } else {
-        create_info.enabledLayerCount = 0;
-    }
-
-    return vkCreateInstance(&create_info, NULL, out);
-}
 
 QueueFamilyIndices find_queue_families(VkPhysicalDevice device, VkSurfaceKHR surface) {
     uint32_t queue_family_count = 0;
@@ -286,12 +121,10 @@ VkPresentModeKHR choose_swap_present_mode(Array *available_modes) {
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkExtent2D choose_swap_surface_extent(VkSurfaceCapabilitiesKHR capabilities, GLFWwindow *window) {
-    int gwidth, gheight;
-    glfwGetFramebufferSize(window, &gwidth, &gheight);
-
-    uint32_t width = gwidth;
-    uint32_t height = gheight;
+VkExtent2D choose_swap_surface_extent(VkSurfaceCapabilitiesKHR capabilities, int window_width,
+                                      int window_height) {
+    uint32_t width = window_width;
+    uint32_t height = window_height;
 
     if (width < capabilities.minImageExtent.width)
         width = capabilities.minImageExtent.width;
@@ -392,13 +225,14 @@ VkResult create_logical_device(VkPhysicalDevice physical_device, QueueFamilyIndi
 }
 
 VkResult create_swapchain(VkPhysicalDevice physical_device, VkDevice device, VkSurfaceKHR surface,
-                          GLFWwindow *window, VkSwapchainKHR *out) {
+                          int window_width, int window_height, SwapchainDetails *out) {
     SwapchainSupportDetails swapchain_support =
         query_swapchain_support(std_allocator, physical_device, surface);
     VkSurfaceFormatKHR surface_format =
         choose_swap_surface_format(&swapchain_support.surface_formats);
     VkPresentModeKHR present_mode = choose_swap_present_mode(&swapchain_support.present_modes);
-    VkExtent2D surface_extent = choose_swap_surface_extent(swapchain_support.capabilities, window);
+    VkExtent2D surface_extent =
+        choose_swap_surface_extent(swapchain_support.capabilities, window_width, window_height);
 
     uint32_t image_count = swapchain_support.capabilities.minImageCount + 1;
     if (swapchain_support.capabilities.maxImageCount > 0 &&
@@ -420,79 +254,149 @@ VkResult create_swapchain(VkPhysicalDevice physical_device, VkDevice device, VkS
     create_info.presentMode = present_mode;
     create_info.clipped = VK_TRUE;
 
-	create_info.oldSwapchain = VK_NULL_HANDLE;
+    create_info.oldSwapchain = VK_NULL_HANDLE;
 
     create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     create_info.queueFamilyIndexCount = 0;  // Optional
     create_info.pQueueFamilyIndices = NULL; // Optional
 
-    VkResult result = vkCreateSwapchainKHR(device, &create_info, NULL, out);
-	free_swapchain_support_details(std_allocator, &swapchain_support);
-	return result;
+    VkSwapchainKHR swapchain;
+    VkResult result = vkCreateSwapchainKHR(device, &create_info, NULL, &swapchain);
+    if (result == VK_SUCCESS) {
+        *out = (SwapchainDetails){
+            .support = swapchain_support,
+            .swapchain = swapchain,
+            .present_mode = present_mode,
+            .surface_extent = surface_extent,
+            .surface_format = surface_format,
+        };
+    }
+
+    return result;
 }
 
-int start_client() {
-    assert(volkInitialize() == VK_SUCCESS);
+Array retrieve_swapchain_images(Allocator allocator, VkDevice device, VkSwapchainKHR swapchain) {
+    Array images;
+    uint32_t image_count;
+    vkGetSwapchainImagesKHR(device, swapchain, &image_count, NULL);
+    array_allocate(image_count, sizeof(VkImage), allocator, &images);
+    vkGetSwapchainImagesKHR(device, swapchain, &image_count, images.data);
+    images.count = image_count;
+    return images;
+}
 
-    if (VALIDATION_LAYERS_ENABLED && !check_validation_support()) {
-        printf("Validation layers not supported\n");
-        return -1;
+VkResult create_image_views(Allocator allocator, VkDevice device, VkFormat image_format,
+                            Array swapchain_images, Array *out_views) {
+    Array image_views = {0};
+    array_allocate(swapchain_images.count, sizeof(VkImageView), allocator, &image_views);
+
+    for (int i = 0; i < swapchain_images.count; i++) {
+        VkImageViewCreateInfo create_info = {0};
+        create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        create_info.image = *(VkImage *)array_get_item(&swapchain_images, i);
+        create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        create_info.format = image_format;
+        create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        create_info.subresourceRange.baseMipLevel = 0;
+        create_info.subresourceRange.levelCount = 1;
+        create_info.subresourceRange.baseArrayLayer = 0;
+        create_info.subresourceRange.layerCount = 1;
+
+        VkResult result =
+            vkCreateImageView(device, &create_info, NULL, array_append_item(&image_views));
+        if (result != VK_SUCCESS) {
+            array_free(&image_views, allocator);
+            return result;
+        }
     }
 
-    if (glfwInit() != GLFW_TRUE) {
-        const char *description;
-        int code = glfwGetError(&description);
-        printf("GLFW initialization failed!\n");
-        printf("Error %d: %s\n", code, description ? description : "Unknown error");
-        return -1;
-    }
+    *out_views = image_views;
 
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    return VK_SUCCESS;
+}
 
-    VkInstance instance;
-    assert(create_vk_instance(&instance) == VK_SUCCESS);
-    volkLoadInstance(instance);
+VkResult create_shader_module(VkDevice device, uint32_t code_size, char *code,
+                              VkShaderModule *out) {
+    VkShaderModuleCreateInfo create_info = {0};
+    create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    create_info.codeSize = code_size;
+    create_info.pCode = (const uint32_t *)code;
+    return vkCreateShaderModule(device, &create_info, NULL, out);
+}
 
-    VkDebugUtilsMessengerEXT debug_messenger;
-    if (VALIDATION_LAYERS_ENABLED) {
-        assert(create_debug_messenger(instance, &debug_messenger) == VK_SUCCESS);
-    }
-
-    GLFWwindow *window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "Vulkan window", NULL, NULL);
-
-    VkSurfaceKHR surface;
-    assert(glfwCreateWindowSurface(instance, window, NULL, &surface) == VK_SUCCESS);
-
+bool renderer_create(Allocator allocator, VkInstance instance, VkSurfaceKHR surface,
+                     int window_width, int window_height, RendererState *out) {
     PhysicalDeviceDetails physical_device_details = pick_physical_device(instance, surface);
-    assert(physical_device_details.physical_device != VK_NULL_HANDLE);
+    if (physical_device_details.physical_device == VK_NULL_HANDLE)
+        return false;
 
     VkPhysicalDevice physical_device = physical_device_details.physical_device;
     QueueFamilyIndices queue_families = physical_device_details.queue_families;
 
     VkDevice device;
-    assert(create_logical_device(physical_device, queue_families, &device) == VK_SUCCESS);
+    if (create_logical_device(physical_device, queue_families, &device) != VK_SUCCESS)
+        return false;
 
     VkQueue device_queue;
     vkGetDeviceQueue(device, queue_families.family, 0, &device_queue);
 
-    VkSwapchainKHR swapchain;
-    assert(create_swapchain(physical_device, device, surface, window, &swapchain) == VK_SUCCESS);
-
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
+    SwapchainDetails swapchain_details;
+    if (create_swapchain(physical_device, device, surface, window_width, window_height,
+                         &swapchain_details) != VK_SUCCESS) {
+        vkDestroyDevice(device, NULL);
+        return false;
     }
 
-    if (VALIDATION_LAYERS_ENABLED) {
-        destroy_debug_utils_messenger_ext(instance, debug_messenger, NULL);
+    VkSwapchainKHR swapchain = swapchain_details.swapchain;
+
+    Array swapchain_images = retrieve_swapchain_images(std_allocator, device, swapchain);
+    Array image_views;
+    if (create_image_views(std_allocator, device, swapchain_details.surface_format.format,
+                           swapchain_images, &image_views) != VK_SUCCESS)
+        return false;
+
+	VkShaderModule fragment_shader;
+	if (create_shader_module(device, shader_frag_contents_len, (char *)shader_frag_contents, &fragment_shader) != VK_SUCCESS)
+		return false;
+
+
+	VkShaderModule vertex_shader;
+	if (create_shader_module(device, shader_vert_contents_len, (char *)shader_vert_contents, &vertex_shader) != VK_SUCCESS)
+		return false;
+
+    RendererState renderer = {
+        .swapchain_details = swapchain_details,
+        .swapchain_images = swapchain_images,
+        .swapchain_views = image_views,
+        .device = device,
+        .device_queue = device_queue,
+        .physical_device = physical_device_details,
+        .surface = surface,
+
+		.frag = fragment_shader,
+		.vert = vertex_shader,
+    };
+
+    return true;
+}
+
+void renderer_destroy(Allocator allocator, RendererState *renderer) {
+    for (int i = 0; i < renderer->swapchain_views.count; i++) {
+        vkDestroyImageView(renderer->device,
+                           *(VkImageView *)array_get_item(&renderer->swapchain_views, i), NULL);
     }
 
-    vkDestroySwapchainKHR(device, swapchain, NULL);
-    vkDestroyDevice(device, NULL);
-    vkDestroySurfaceKHR(instance, surface, NULL);
-    vkDestroyInstance(instance, NULL);
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    vkDestroySwapchainKHR(renderer->device, renderer->swapchain_details.swapchain, NULL);
+    vkDestroyDevice(renderer->device, NULL);
 
-    return 0;
+	vkDestroyShaderModule(renderer->device, renderer->frag, NULL);
+	vkDestroyShaderModule(renderer->device, renderer->vert, NULL);
+
+    free_swapchain_support_details(allocator, &renderer->swapchain_details.support);
+    array_free(&renderer->swapchain_images, allocator);
+    array_free(&renderer->swapchain_views, allocator);
 }
