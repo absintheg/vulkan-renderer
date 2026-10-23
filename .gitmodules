@@ -10,3 +10,6 @@
 [submodule "external/volk"]
 	path = external/volk
 	url = https://github.com/zeux/volk
+[submodule "mem"]
+	path = mem
+	url = https://github.com/absintheg/memory-utils
