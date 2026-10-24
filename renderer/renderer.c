@@ -594,7 +594,7 @@ bool record_renderer_command_buffer(RendererState *renderer, int image_index) {
     VkRect2D scissor = create_scissor(renderer->swapchain_details.surface_extent);
     vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 
-    vkCmdDraw(command_buffer, 3, 1, 0, 0);
+    vkCmdDraw(command_buffer, 6, 1, 0, 0);
     vkCmdEndRenderPass(command_buffer);
 
     if (vkEndCommandBuffer(command_buffer) != VK_SUCCESS)
