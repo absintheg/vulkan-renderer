@@ -79,8 +79,8 @@ SwapchainSupportDetails query_swapchain_support(Allocator allocator, VkPhysicalD
     vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &surface_format_count, NULL);
 
     if (surface_format_count != 0) {
-        array_allocate(surface_format_count, sizeof(VkSurfaceFormatKHR), allocator,
-                       &details.surface_formats);
+        array_allocate(&details.surface_formats, surface_format_count, sizeof(VkSurfaceFormatKHR),
+                       allocator);
         vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &surface_format_count,
                                              details.surface_formats.data);
         details.surface_formats.count = surface_format_count;
@@ -92,8 +92,8 @@ SwapchainSupportDetails query_swapchain_support(Allocator allocator, VkPhysicalD
     vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_mode_count, NULL);
 
     if (present_mode_count != 0) {
-        array_allocate(surface_format_count, sizeof(VkPresentModeKHR), allocator,
-                       &details.present_modes);
+        array_allocate(&details.present_modes, surface_format_count, sizeof(VkPresentModeKHR),
+                       allocator);
         vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_mode_count,
                                                   details.present_modes.data);
         details.present_modes.count = surface_format_count;
@@ -282,7 +282,7 @@ Array retrieve_swapchain_images(Allocator allocator, VkDevice device, VkSwapchai
     Array images;
     uint32_t image_count;
     vkGetSwapchainImagesKHR(device, swapchain, &image_count, NULL);
-    array_allocate(image_count, sizeof(VkImage), allocator, &images);
+    array_allocate(&images, image_count, sizeof(VkImage), allocator);
     vkGetSwapchainImagesKHR(device, swapchain, &image_count, images.data);
     images.count = image_count;
     return images;
@@ -300,7 +300,7 @@ void destroy_image_views(Allocator allocator, VkDevice device, Array *image_view
 VkResult create_image_views(Allocator allocator, VkDevice device, VkFormat image_format,
                             Array swapchain_images, Array *out_views) {
     Array image_views = {0};
-    array_allocate(swapchain_images.count, sizeof(VkImageView), allocator, &image_views);
+    array_allocate(&image_views, swapchain_images.count, sizeof(VkImageView), allocator);
 
     for (int i = 0; i < swapchain_images.count; i++) {
         VkImageViewCreateInfo create_info = {0};
@@ -522,7 +522,7 @@ void destroy_framebuffers(Allocator allocator, VkDevice device, Array *framebuff
 VkResult create_framebuffers(Allocator allocator, VkDevice device, Array image_views,
                              VkRenderPass render_pass, VkExtent2D surface_extent, Array *out) {
     Array framebuffers = {0};
-    array_allocate(image_views.count, sizeof(VkFramebuffer), allocator, &framebuffers);
+    array_allocate(&framebuffers, image_views.count, sizeof(VkFramebuffer), allocator);
 
     for (int i = 0; i < image_views.count; i++) {
         VkFramebufferCreateInfo framebuffer_info = {0};
